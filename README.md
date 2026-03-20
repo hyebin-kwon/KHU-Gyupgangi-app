@@ -1,74 +1,439 @@
-# 겹강이 (Gyeopgang-i)
+# 📚 Gyupgangi（겹강이）
 
-## 📌 프로젝트 소개
-**겹강이**는 대학생들이 같은 강의를 듣는 친구를 쉽게 찾을 수 있도록 도와주는 웹·모바일 서비스입니다.  
-이용자가 자신의 시간표를 등록하면, 시스템이 다른 이용자들의 시간표와 비교하여 **겹치는 강의가 있는 친구**를 매칭해줍니다.  
-이를 통해 조별 과제 팀원 모집, 수업 정보 공유, 함께 공부할 친구 찾기 등 대학 생활 전반에서 교류를 촉진합니다.
+## 🧩 プロジェクト概要
 
+**Gyupgangiは、時間割ベースのマッチングアルゴリズムを通じて、大学生同士の自然な関係形成を支援するWebサービスです。**
 
-## ⏳ 개발 기간
-**2024.03 – 2024.06**
+ユーザーが時間割を登録すると、
 
+👉 同じ授業を受講している学生を自動的に検出し、
 
-## 👥 멤버 구성
-| 이름 | 역할 | 주요 담당 |
-|------|------|-----------|
-| 전지원 | 프론트엔드 개발 & DB 설계 | HTML/CSS UI 디자인, SQLite3 DB 설계 및 연동 |
-| 권혜빈 | 백엔드 개발 | Flask 서버 구축, 시간표 등록 및 조회 로직 구현, 채팅 서비스 구현 |
-| 곽가영 | 백엔드 개발 | Flask 서버 구축, 매칭 로직 구현, PythonAnywhere 배포 및 호스팅 |
+👉 共通講義数に基づいて友達を推薦します。
 
+また、
 
-## 💻 개발 환경
-- **Front End:** HTML, CSS  
-- **Back End:** Python (Flask)  
-- **Database:** SQLite3  
-- **Design Pattern:** MVC  
-- **Hosting:** PythonAnywhere  
-- **Mobile App:** React Native (Web-View)  
-- **OS:** Windows  
+👉 友達関係である場合のみチャットやプロフィール閲覧が可能となるよう設計し、
+
+👉 **プライバシーと安全性を同時に確保したSNS型サービス**です。
 
 
-## ✨ 주요 기능
-- **회원 가입**
-  - ID/PW 설정 및 중복 방지
-  - 프로필 등록 (학번, 성별, 자기소개)
-- **시간표 관리**
-  - 강의 검색 및 시간표 추가
-  - 종합 강의 시간표 조회
-- **친구 매칭**
-  - 최소·최대 겹강 개수 조건 설정
-  - 같은 강의를 듣는 친구 리스트 제공
-- **소셜 기능**
-  - 친구 신청 및 수락
-  - 채팅 기능 지원 (친구 수락 후 개인정보 확인 가능)
+---
+
+## 🚀 問題定義
+
+大学生は同じ授業を受けることで自然な接点はあるものの、
+
+* 自分から話しかけることが難しい
+* 情報共有やグループ課題のチーム構成が困難
+* 特に内向的な学生は関係形成のハードルが高い
+
+👉 そこで、
+**「共通の授業」という自然な接点を活用したサービスを設計しました。**
+
+---
+
+## ⚙ 主な機能
+
+### 1⃣ 時間割ベースの友達マッチング
+
+* 共通講義数の計算
+* 同一授業に基づくユーザー推薦
+
+### 2⃣ 友達申請システム
+
+* 申請 / 承認 / 保留の状態管理
+* `FRIEND_STATUS` による関係制御
+
+### 3⃣ 通知システム
+
+* 友達申請・承認時の通知生成
+* 通知履歴の保存
+
+### 4⃣ 制限付きアクセス制御
+
+* 友達関係の場合のみ：
+
+  * チャット可能
+  * プロフィール閲覧可能
 
 
-## 📈 기대 효과
-- 대학 생활에서 새로운 친구를 쉽게 찾을 수 있음
-- 팀 과제, 시험 대비, 학습 모임 등 교우관계 및 학업 성취도 향상
-- 내향적인 학생, 복학생, 다전공생 등도 쉽게 교류 가능
+---
+
+## 🛠 技術スタック
+
+* **Frontend:** HTML, CSS
+* **Backend:** Python (Flask)
+* **Database:** SQLite3
+* **Realtime:** Flask-SocketIO
+* **Architecture:** MVC Pattern
+
+その他：
+
+* Web Crawling → 講義データ収集
+* PythonAnywhere → デプロイ
+* React Native (Expo) → WebView化
+
+---
+
+## 🧠 コアロジック
+
+### 📌 マッチングアルゴリズム
+
+* ユーザー間の時間割比較
+* 共通講義数に基づく推薦
 
 
-## 🖥️ 시스템 구성
-- **웹 버전:** Flask + SQLite3 + HTML/CSS
-- **모바일 앱:** React Native Web-View
-- **호스팅:** PythonAnywhere
+### 📌 関係状態モデル（重要設計）
+
+```text
+FRIEND_STATUS
+0 → 初期（マッチング状態）
+1 → 申請中
+2 → 友達確定
+```
+
+👉 単一の属性で関係フロー全体を制御
 
 
-## 🚀 실행 방법
-### 로컬 실행
+### 📌 通知システム
+
+* 構造：`{sender_id, user_id, message}`
+* イベントベース通知生成
+* 履歴保存
+
+👉 機能だけでなく**ユーザー体験の流れまで考慮した設計**
+
+---
+
+## 🗄 データベース設計
+
+### 主要エンティティ
+
+#### 1. MEMBERS（ユーザー）
+
+* ID, PW, EMAIL, NAME, NICKNAME
+* INTRO, YEAR, SEX
+* MAJOR1, MAJOR2（複合属性）
+
+
+#### 2. TOTALLECTURES（講義）
+
+* 講義情報管理
+* 曜日は多値属性として分離
+
+
+#### 3. LECTURES（履修関係）
+
+* ユーザー ↔ 講義（M:N関係）
+
+
+#### 4. FRIEND（コアエンティティ🔥）
+
+* (USER1, USER2) 複合キー
+* FRIEND_STATUS
+
+👉 **ユーザー関係の状態管理を担う中心テーブル**
+
+
+#### 5. NOTIFICATION（通知）
+
+* ユーザー間イベント保存
+
+
+#### 6. MESSAGE（チャット）
+
+* 友達関係時のみ利用可能
+
+---
+
+## 🏗 プロジェクト構造
+
 ```bash
-# 1. 저장소 클론
+KHU-Gyupgangi-app/
+├── application.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+├── docs/  
+│   ├── Gyupgangi_Database_Design_Report.pdf
+│   └── Gyupgangi_Final_Presentation.pdf
+├── data/
+│   └── lectures.csv
+├── database/
+│   ├── sqlite_temp.py
+│   └── .gitkeep
+├── static/
+│   └── img/
+│       ├── profile.png
+│       ├── logo_name.png
+│       └── splash.png
+├── templates/
+│   ├── auth/
+│   │   ├── start.html
+│   │   └── regmember.html
+│   ├── timetable/
+│   │   ├── search.html
+│   │   ├── search_result.html
+│   │   └── timetable.html
+│   ├── friends/
+│   │   ├── findfriend_home.html
+│   │   ├── friend_list.html
+│   │   ├── realfriend_list.html
+│   │   └── friend_profile.html
+│   ├── profile/
+│   │   ├── myprof_home.html
+│   │   └── myprof_rev.html
+│   ├── chat/
+│   │   ├── friend_chat.html
+│   │   └── chat.html
+│   ├── notifications/
+│   │   └── notification_history.html
+│   └── common/
+│       ├── hello.html
+│       └── home.html
+└── utils/
+    └── calculateTime.py
+```
+
+本プロジェクトは、現在 `application.py` にすべてのルーティングおよび主要なバックエンドロジックを実装している構成です。  ただし、可読性向上のために、リポジトリ上では機能ごとにテンプレート・データ・ユーティリティを整理しています。
+
+---
+
+### 1⃣ ルーティング構成（`application.py`）
+
+`application.py` では、以下のように機能単位でルートを分類できます。
+
+#### 🔹 auth
+- `/`, `/login`, `/logout`, `/regmember`, `/addmem`
+
+#### 🔹 timetable
+- `/enternew`, `/search`, `/addsubject`, `/delsubject`, `/timetable`
+
+#### 🔹 friends
+- `/findfriend_home`, `/friend_list`, `/realfriend_list`, `/accept_friend`, `/accept_friend_request`
+
+#### 🔹 profile
+- `/myprofile`, `/enternewprof`, `/updateprof`, `/friend_profile`
+
+#### 🔹 chat
+- `/friend_chat`, `/chat/<friend_id>`, `/send_message`, `/chat_history/<room>`
+
+#### 🔹 notifications
+- `/notification_history`
+
+
+---
+
+### 2⃣ 各ファイル・フォルダの役割
+
+#### 📁 data/
+
+* **lectures.csv**
+  講義情報を保存したCSVファイルです。
+  初期講義データとして利用し、SQLiteデータベースへ投入するために使用します。
+
+
+#### 📁 database/
+
+* **sqlite_temp.py**
+  SQLiteデータベースの初期化用スクリプトです。
+  テーブル作成や講義データの登録処理を担当します。
+
+
+#### 📁 templates/auth/
+
+* **start.html**
+  初期画面・ログイン画面です。
+
+* **regmember.html**
+  会員登録画面です。
+
+
+#### 📁 templates/timetable/
+
+* **search.html**
+  講義検索画面です。
+
+* **search_result.html**
+  検索結果一覧および講義選択画面です。
+
+* **timetable.html**
+  ユーザー時間割の表示・追加・削除を行う画面です。
+
+
+#### 📁 templates/friends/
+
+* **findfriend_home.html**
+  友達検索開始画面です。
+
+* **friend_list.html**
+  マッチングされたユーザー一覧および友達申請画面です。
+
+* **realfriend_list.html**
+  申請待ち・承認済みの友達一覧を表示する画面です。
+
+* **friend_profile.html**
+  他ユーザーのプロフィールと時間割を閲覧する画面です。
+
+
+#### 📁 templates/profile/
+
+* **myprof_home.html**
+  自分のプロフィール表示画面です。
+
+* **myprof_rev.html**
+  自分のプロフィール編集画面です。
+
+
+#### 📁 templates/chat/
+
+* **friend_chat.html**
+  チャット可能な友達一覧を表示する画面です。
+
+* **chat.html**
+  1対1リアルタイムチャット画面です。
+
+
+#### 📁 templates/notifications/
+
+* **notification_history.html**
+  通知履歴一覧を表示する画面です。
+
+
+#### 📁 templates/common/
+
+* **hello.html**
+  ログイン後のメインナビゲーション画面です。
+
+* **home.html**
+  ホーム画面です。通知アイコンや主要導線を提供します。
+
+
+#### 📁 utils/
+
+* **calculateTime.py**
+  講義時間データを時間割テーブル形式に変換するユーティリティです。
+  時間割生成、講義時刻変換、重複講義判定に利用されます。
+
+---
+
+## ▶ ローカル実行方法
+
+```bash
+# 1. リポジトリをクローン
 git clone https://github.com/username/gyeopgang-i.git
 
-# 2. 가상환경 생성 및 활성화
+# 2. 仮想環境作成・有効化
 python -m venv venv
 source venv/bin/activate   # Mac/Linux
 venv\Scripts\activate      # Windows
 
-# 3. 패키지 설치
+# 3. 依存パッケージインストール
 pip install -r requirements.txt
 
-# 4. 실행
+# 4. サーバー起動
 flask run
 ```
+
+---
+
+## ⚠ 制約・課題および学び
+
+### 🔹 1. サーバー環境と技術選定の制約
+
+* Flask + SQLite構成で開発を進めたが、
+  多くのホスティングサービスがMySQLを前提としており、選択肢が制限された
+* PythonAnywhereを利用してデプロイを行ったが、
+  **Flask-SocketIO（リアルタイム通信）が正常に動作しない問題が発生**
+
+* **学び：** 技術選定は「開発のしやすさ」だけでなく「デプロイ環境との互換性」まで考慮する必要がある。
+リアルタイム機能はインフラ依存度が高い
+
+
+### 🔹 2. データベース設計とスケーラビリティ
+
+* 初期設計では、ユーザー情報に関連データを統合しようとしたが
+講義数、メッセージ数、友達数の増加によりデータ量が急増し、非効率が発生
+
+* リレーション分離により改善したが、**DBサイズ増加とパフォーマンス問題を実感**
+
+* **学び：** 正規化だけでなく**「データ増加時のスケーラビリティ」を考慮した設計が重要**
+
+
+### 🔹 3. 状態管理（FRIEND_STATUS）の重要性
+
+* 初期は複数のフラグで関係を管理しようとしたが、
+  状態遷移が複雑化しバグが発生
+
+* **単一の状態値（FRIEND_STATUS）に統一することで解決**
+
+* **学び：****「状態を明確に定義すること」がシステム設計の安定性を大きく左右する。**
+状態設計はDB設計だけでなく**アクセス制御やUXにも直結する**
+
+
+### 🔹 4. 通知システムのUX課題
+
+* 通知の既読（SEEN）処理により
+  一度確認した通知が再表示されない問題が発生
+* テストのために複数アカウントを作成する必要があり、検証コストが高かった
+
+* **学び：**機能実装だけでなく **「ユーザー体験（UX）」を考慮した設計が必要。**
+状態管理（既読/未読）は慎重に設計すべき
+
+
+### 🔹 5. 機能実装と時間的制約
+
+* iOS環境では一部機能が正常動作せず
+* 実ユーザーによるベータテストを十分に実施できなかった
+
+ **学び：** 機能完成度よりも **「ユーザー検証（フィードバック）」がサービス改善に重要。**
+ クロスプラットフォーム対応の難しさを理解
+
+---
+
+## 🔧 今後の改善
+
+* MySQL / PostgreSQLへの移行
+* Flask Blueprintによるモジュール分割
+* SocketIO対応可能なインフラへの移行
+* インデックス設計およびクエリ最適化
+* ユーザーテストの実施とUX改善
+---
+
+## 👩‍💻 チーム内役割
+
+本プロジェクトは3名で開発し、それぞれの役割は以下の通りです。
+
+---
+
+### 🔹 권혜빈（バックエンド / コア設計担当）
+
+- マッチングアルゴリズム設計および実装  
+- `FRIEND_STATUS` による関係モデル設計  
+- Flaskベースの「友達検索・管理」機能の実装  
+- Friend / Notification リレーションのバックエンド構築  
+- 通知履歴機能・プロフィール公開設定などの詳細機能実装  
+- 発表資料（中間・最終）作成  
+
+---
+
+### 🔹 곽가영（データ収集 / フロントエンド担当）
+
+- 初期プロトタイプ設計  
+- Webクローリングによる講義データ収集  
+- 統合時間割データ（TOTALLECTURES）構築  
+- 「時間割テキスト → テーブル変換」アルゴリズム設計  
+- マッチングロジック補助  
+- 全体CSSおよびUIデザイン担当  
+
+---
+
+### 🔹 전지원（フルスタック / インフラ担当）
+
+- ペーパープロトタイプ設計  
+- Flaskアプリ基本構造（ログイン、会員登録、画面構成）実装  
+- 時間割検索・管理機能およびマイページ開発  
+- データベース設計およびSQL作成  
+- Webホスティング（PythonAnywhere）担当  
+- React Native（WebView）によるモバイルアプリ化  
+- ロゴおよび画面デザイン制作  
